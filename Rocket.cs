@@ -9,6 +9,8 @@ public class Rocket : MonoBehaviour
     [SerializeField] float rcsThrust = 100f;
     [SerializeField] float mainThrust = 100f;
     [SerializeField] AudioClip mainEngine;
+    [SerializeField] AudioClip success;
+    [SerializeField] AudioClip death;
     Rigidbody rigidBody;
     AudioSource audioSource;
 
@@ -27,8 +29,8 @@ public class Rocket : MonoBehaviour
     { // need to stop sound on death todo
         if (state == State.Alive) 
         {
-        Thrust();
-        Rotate();
+        RespondToThrustInput();
+        RespondToRotateInput();
         }
     }
 
@@ -45,6 +47,8 @@ public class Rocket : MonoBehaviour
                 break;
             default:
                 state = State.Dying;
+                audioSource.Stop();
+                audioSource.PlayOneShot(death);
                 Invoke("LoadFirstLevel", 1f); //parameterize time
                 break;
         }
@@ -61,15 +65,11 @@ public class Rocket : MonoBehaviour
         SceneManager.LoadScene(0);
     }
 
-    private void Thrust()
+    private void RespondToThrustInput()
     {
         if (Input.GetKey(KeyCode.Space)) //Can thrust while rotating
         {
-            rigidBody.AddRelativeForce(Vector3.up * mainThrust);
-            if (!audioSource.isPlaying) //Prevent audio layering
-            {
-                audioSource.Play();
-            }  
+            ApplyThrust();
         }
         else 
             {
@@ -77,7 +77,16 @@ public class Rocket : MonoBehaviour
             }
     }
 
-    private void Rotate()
+    private void ApplyThrust() 
+    {
+        rigidBody.AddRelativeForce(Vector3.up * mainThrust);
+        if (!audioSource.isPlaying) //Prevent audio layering
+        {
+            audioSource.PlayOneShot(mainEngine);
+        }  
+    }
+
+    private void RespondToRotateInput()
     {     
 
         rigidBody.freezeRotation = true; // take manual control of rotation
